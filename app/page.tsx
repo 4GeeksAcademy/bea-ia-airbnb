@@ -1,65 +1,227 @@
-import Image from "next/image";
+"use client";
+
+import { useEffect, useState } from "react";
+import type { Stay } from "@/types";
+
+type StayCard = Stay & {
+  category: string;
+};
+
+type FilterItem = {
+  id: string;
+  label: string;
+  icon: string;
+};
+
+const categoryFilters: FilterItem[] = [
+  { id: "Todas", label: "Todas", icon: "🏠" },
+  { id: "Playa", label: "Playa", icon: "🏖️" },
+  { id: "Mansiones", label: "Mansiones", icon: "🏛️" },
+  { id: "Tendencias", label: "Tendencias", icon: "🔥" },
+  { id: "Cabaña", label: "Cabaña", icon: "🌲" },
+  { id: "Diseño", label: "Diseño", icon: "🎨" },
+];
+
+const seedStays: StayCard[] = [
+  {
+    id: "stay-1",
+    title: "Villa frente al mar en Costa Brava",
+    location: "Girona, España",
+    category: "Playa",
+    pricePerNight: 220,
+    rating: 4.9,
+    imageUrl: "",
+  },
+  {
+    id: "stay-2",
+    title: "Mansión clásica con jardín privado",
+    location: "Sevilla, España",
+    category: "Mansiones",
+    pricePerNight: 410,
+    rating: 4.8,
+    imageUrl: "",
+  },
+  {
+    id: "stay-3",
+    title: "Loft en barrio artístico",
+    location: "Madrid, España",
+    category: "Tendencias",
+    pricePerNight: 150,
+    rating: 4.7,
+    imageUrl: "",
+  },
+  {
+    id: "stay-4",
+    title: "Cabaña minimalista en la montaña",
+    location: "Asturias, España",
+    category: "Cabaña",
+    pricePerNight: 130,
+    rating: 4.6,
+    imageUrl: "",
+  },
+  {
+    id: "stay-5",
+    title: "Casa de autor con interiores únicos",
+    location: "Valencia, España",
+    category: "Diseño",
+    pricePerNight: 195,
+    rating: 4.9,
+    imageUrl: "",
+  },
+  {
+    id: "stay-6",
+    title: "Apartamento cerca de la playa",
+    location: "Málaga, España",
+    category: "Playa",
+    pricePerNight: 115,
+    rating: 4.5,
+    imageUrl: "",
+  },
+];
 
 export default function Home() {
+  const [searchText, setSearchText] = useState("");
+  const [activeCategory, setActiveCategory] = useState("Todas");
+  const [loading, setLoading] = useState(true);
+  const [allStays, setAllStays] = useState<StayCard[]>([]);
+  const [visibleStays, setVisibleStays] = useState<StayCard[]>([]);
+
+  const applyFilters = (query: string, category: string, source: StayCard[]) => {
+    const normalizedQuery = query.trim().toLowerCase();
+
+    const filtered = source.filter((stay) => {
+      const matchesCategory = category === "Todas" || stay.category === category;
+      const matchesQuery =
+        normalizedQuery.length === 0 ||
+        stay.title.toLowerCase().includes(normalizedQuery) ||
+        stay.location.toLowerCase().includes(normalizedQuery);
+
+      return matchesCategory && matchesQuery;
+    });
+
+    setVisibleStays(filtered);
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setAllStays(seedStays);
+      setVisibleStays(seedStays);
+      setLoading(false);
+    }, 900);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleSearchChange = (value: string) => {
+    setSearchText(value);
+    applyFilters(value, activeCategory, allStays);
+  };
+
+  const handleCategoryClick = (category: string) => {
+    setActiveCategory(category);
+    applyFilters(searchText, category, allStays);
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+    <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-4 pb-10 pt-6 sm:px-6 lg:px-8">
+      <header className="sticky top-0 z-20 rounded-2xl border border-slate-200 bg-white/95 px-4 py-3 shadow-sm backdrop-blur sm:px-5">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="text-2xl font-black tracking-tight text-rose-500">holidays</div>
+
+          <div className="flex h-11 w-full items-center gap-2 rounded-full border border-slate-200 px-4 md:max-w-lg">
+            <svg viewBox="0 0 24 24" className="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="11" cy="11" r="7" />
+              <path d="m20 20-3.5-3.5" />
+            </svg>
+            <input
+              value={searchText}
+              onChange={(event) => handleSearchChange(event.target.value)}
+              type="text"
+              placeholder="Buscar destino o alojamiento"
+              className="h-full w-full bg-transparent text-sm text-slate-700 outline-none"
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          </div>
+
+          <div className="ml-auto flex items-center gap-2">
+            <button
+              type="button"
+              className="rounded-full border border-slate-200 p-2 text-slate-600 transition hover:bg-slate-100"
+              aria-label="Abrir menu"
+            >
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M4 7h16M4 12h16M4 17h16" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              className="rounded-full border border-slate-200 p-2 text-slate-600 transition hover:bg-slate-100"
+              aria-label="Cuenta de usuario"
+            >
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="8" r="3.5" />
+                <path d="M4 20c1.6-3.2 4.3-4.8 8-4.8s6.4 1.6 8 4.8" />
+              </svg>
+            </button>
+          </div>
         </div>
-      </main>
-    </div>
+
+        <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
+          {categoryFilters.map((category) => {
+            const isActive = category.id === activeCategory;
+
+            return (
+              <button
+                key={category.id}
+                type="button"
+                onClick={() => handleCategoryClick(category.id)}
+                className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                  isActive
+                    ? "border-rose-500 bg-rose-50 text-rose-600"
+                    : "border-slate-200 bg-white text-slate-600 hover:bg-slate-100"
+                }`}
+              >
+                <span>{category.icon}</span>
+                <span>{category.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </header>
+
+      <section className="mt-6">
+        {loading ? (
+          <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center text-slate-500 shadow-sm">
+            Cargando alojamientos...
+          </div>
+        ) : (
+          <>
+            <div className="mb-4 text-sm text-slate-600">{visibleStays.length} alojamientos visibles</div>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {visibleStays.map((stay) => (
+                <article
+                  key={stay.id}
+                  className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                >
+                  <div className="flex h-44 items-center justify-center bg-gradient-to-br from-sky-100 via-cyan-50 to-emerald-100 text-sm font-semibold text-slate-500">
+                    Foto placeholder
+                  </div>
+
+                  <div className="space-y-2 p-4">
+                    <h2 className="line-clamp-2 text-base font-semibold text-slate-900">{stay.title}</h2>
+                    <p className="text-sm text-slate-500">{stay.location}</p>
+
+                    <div className="flex items-center justify-between text-sm">
+                      <p className="font-semibold text-slate-900">${stay.pricePerNight} / noche</p>
+                      <p className="font-medium text-amber-600">★ {stay.rating.toFixed(1)}</p>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </>
+        )}
+      </section>
+    </main>
   );
 }
