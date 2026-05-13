@@ -2,12 +2,26 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import StayCard from "@/components/stay-card";
 import type { Stay } from "@/types";
 
 type SortOrder = "asc" | "desc";
 
-const initialStays: Stay[] = [
+type StayWithCoordinates = Stay & {
+  coordinates: [number, number];
+};
+
+const CatalogMap = dynamic(() => import("@/components/catalog-map"), {
+  ssr: false,
+  loading: () => (
+    <div className="sticky top-6 flex h-64 items-center justify-center rounded-2xl border border-slate-300 bg-slate-200/70 text-lg font-semibold tracking-wide text-slate-600 lg:h-[calc(100vh-7rem)]">
+      Cargando mapa...
+    </div>
+  ),
+});
+
+const initialStays: StayWithCoordinates[] = [
   {
     id: "catalog-1",
     title: "Apartamento moderno con terraza",
@@ -15,6 +29,7 @@ const initialStays: Stay[] = [
     pricePerNight: 180,
     rating: 4.8,
     imageUrl: "",
+    coordinates: [41.3851, 2.1734],
   },
   {
     id: "catalog-2",
@@ -23,6 +38,7 @@ const initialStays: Stay[] = [
     pricePerNight: 140,
     rating: 4.6,
     imageUrl: "",
+    coordinates: [40.4168, -3.7038],
   },
   {
     id: "catalog-3",
@@ -31,6 +47,7 @@ const initialStays: Stay[] = [
     pricePerNight: 260,
     rating: 4.9,
     imageUrl: "",
+    coordinates: [39.4699, -0.3763],
   },
   {
     id: "catalog-4",
@@ -39,6 +56,7 @@ const initialStays: Stay[] = [
     pricePerNight: 120,
     rating: 4.5,
     imageUrl: "",
+    coordinates: [36.7213, -4.4217],
   },
   {
     id: "catalog-5",
@@ -47,6 +65,7 @@ const initialStays: Stay[] = [
     pricePerNight: 390,
     rating: 5,
     imageUrl: "",
+    coordinates: [37.3891, -5.9845],
   },
   {
     id: "catalog-6",
@@ -55,12 +74,14 @@ const initialStays: Stay[] = [
     pricePerNight: 98,
     rating: 4.4,
     imageUrl: "",
+    coordinates: [43.263, -2.935],
   },
 ];
 
 export default function CatalogoPage() {
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
-  const [cards, setCards] = useState<Stay[]>(() =>
+  const [highlightedStayId, setHighlightedStayId] = useState<string | null>(null);
+  const [cards, setCards] = useState<StayWithCoordinates[]>(() =>
     [...initialStays].sort((a, b) => a.pricePerNight - b.pricePerNight)
   );
 
@@ -107,16 +128,22 @@ export default function CatalogoPage() {
       <section className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {cards.map((stay) => (
-            <Link key={stay.id} href={`/habitacion/${stay.id}`} className="block">
+            <Link
+              key={stay.id}
+              href={`/habitacion/${stay.id}`}
+              className="block"
+              onMouseEnter={() => setHighlightedStayId(stay.id)}
+              onMouseLeave={() => setHighlightedStayId(null)}
+              onFocus={() => setHighlightedStayId(stay.id)}
+              onBlur={() => setHighlightedStayId(null)}
+            >
               <StayCard stay={stay} />
             </Link>
           ))}
         </div>
 
         <aside className="order-last lg:order-none">
-          <div className="sticky top-6 flex h-64 items-center justify-center rounded-2xl border border-slate-300 bg-slate-200/70 text-lg font-semibold tracking-wide text-slate-600 lg:h-[calc(100vh-7rem)]">
-            MAPA
-          </div>
+          <CatalogMap stays={cards} highlightedStayId={highlightedStayId} />
         </aside>
       </section>
     </main>
