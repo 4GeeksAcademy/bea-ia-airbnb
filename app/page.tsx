@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import StayCard from "@/components/stay-card";
 import type { Stay } from "@/types";
 
 type StayCard = Stay & {
@@ -143,6 +145,12 @@ export default function Home() {
           </div>
 
           <div className="ml-auto flex items-center gap-2">
+            <Link
+              href="/catalogo"
+              className="rounded-full border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-100"
+            >
+              Ver catalogo
+            </Link>
             <button
               type="button"
               className="rounded-full border border-slate-200 p-2 text-slate-600 transition hover:bg-slate-100"
@@ -199,24 +207,9 @@ export default function Home() {
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {visibleStays.map((stay) => (
-                <article
-                  key={stay.id}
-                  className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-                >
-                  <div className="flex h-44 items-center justify-center bg-gradient-to-br from-sky-100 via-cyan-50 to-emerald-100 text-sm font-semibold text-slate-500">
-                    Foto placeholder
-                  </div>
-
-                  <div className="space-y-2 p-4">
-                    <h2 className="line-clamp-2 text-base font-semibold text-slate-900">{stay.title}</h2>
-                    <p className="text-sm text-slate-500">{stay.location}</p>
-
-                    <div className="flex items-center justify-between text-sm">
-                      <p className="font-semibold text-slate-900">${stay.pricePerNight} / noche</p>
-                      <p className="font-medium text-amber-600">★ {stay.rating.toFixed(1)}</p>
-                    </div>
-                  </div>
-                </article>
+                <Link key={stay.id} href={`/habitacion/${stay.id}`} className="block">
+                  <StayCard stay={stay} />
+                </Link>
               ))}
             </div>
           </>
